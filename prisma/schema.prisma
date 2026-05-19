@@ -1,0 +1,310 @@
+// =============================================================================
+// Músicos:Bandas — Prisma Schema
+// =============================================================================
+//
+// INDEXES NEEDED (already declared inline on models below):
+//   Booking        @@index([clientId, status])
+//   Booking        @@index([musicianId, status])
+//   Booking        @@index([status, createdAt])        -- cron job queries
+//   Booking        @@index([wompiTxId])
+//   AnalyticsEvent @@index([eventType, createdAt])
+//   AnalyticsEvent @@index([userId, createdAt])
+//
+// MIGRATION STEPS (once DATABASE_URL is set):
+//   npx prisma migrate dev --name init
+//   npx prisma generate
+// =============================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+// NOTE: In Prisma v7, database URLs are NOT set here.
+// Connection is configured via:
+//   - prisma.config.ts (datasource.url) — used by Prisma CLI for migrations
+//   - PrismaClient constructor (adapter option) — used at runtime
+// See lib/prisma.ts for the runtime adapter setup.
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum Role {
+  CLIENT
+  MUSICIAN
+  ADMIN
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  PAID // client paid; payout to musician initiated
+  DISPUTED
+  COMPLETED // payout confirmed
+  REFUNDED
+  CANCELLED
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  STUDIO
+}
+
+enum VideoStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum AnalyticsEventType {
+  PROFILE_VIEWED
+  SEARCH_PERFORMED
+  BOOKING_REQUESTED
+  BOOKING_COMPLETED
+  REVIEW_LEFT
+  WAITLIST_JOINED
+}
+
+// =============================================================================
+// Auth.js v5 Models
+// =============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // null for OAuth users
+  role          Role      @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Auth.js v5 relations
+  accounts Account[]
+  sessions Session[]
+
+  // App relations
+  musicianProfile  MusicianProfile?
+  clientBookings   Booking[]        @relation("ClientBookings")
+  musicianBookings Booking[]        @relation("MusicianBookings")
+  sentMessages     Message[]        @relation("SentMessages")
+  reviewsGiven     Review[]         @relation("ReviewsGiven")
+  reviewsReceived  Review[]         @relation("ReviewsReceived")
+  analyticsEvents  AnalyticsEvent[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// =============================================================================
+// Musician Domain
+// =============================================================================
+
+model MusicianProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  bio             String?  @db.Text
+  tagline         String?
+  genres          String[]
+  instruments     String[]
+  languages       String[]
+  location        String?
+  planTier        PlanTier @default(FREE)
+  isPublished     Boolean  @default(false)
+  isVerified      Boolean  @default(false)
+  avgRating       Decimal  @default(0) @db.Decimal(3, 2) // denormalized, updated by middleware
+  totalBookings   Int      @default(0) // denormalized
+  profilePhotoUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services Service[]
+  videos   Video[]
+  bookings Booking[] @relation("MusicianProfileBookings")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  profileId   String
+  title       String
+  description String?  @db.Text
+  priceUSD    Decimal  @db.Decimal(10, 2)
+  duration    String? // e.g. "4 hours", "Full day"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profile  MusicianProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+}
+
+model Video {
+  id                String      @id @default(cuid())
+  profileId         String
+  cloudflareVideoId String      @unique
+  title             String?
+  status            VideoStatus @default(PROCESSING)
+  durationSeconds   Int?
+  thumbnailUrl      String?
+  sortOrder         Int         @default(0)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  profile MusicianProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// =============================================================================
+// Booking Domain
+// =============================================================================
+
+model Booking {
+  id         String        @id @default(cuid())
+  clientId   String
+  musicianId String // User.id of musician
+  profileId  String? // MusicianProfile.id — optional link for profile-level queries
+  serviceId  String?
+  status     BookingStatus @default(REQUESTED)
+
+  // Fee breakdown (all USD, calculated once at booking creation via calculateBookingAmounts())
+  serviceAmount  Decimal @db.Decimal(10, 2) // musician's listed price  ($100)
+  bookingFee     Decimal @db.Decimal(10, 2) // 14% client fee           ($14)
+  clientTotal    Decimal @db.Decimal(10, 2) // what client pays         ($114)
+  musicianPayout Decimal @db.Decimal(10, 2) // what musician receives   ($97)
+  platformFee    Decimal @db.Decimal(10, 2) // platform net             ($10.99)
+  wompiFeePaid   Decimal @db.Decimal(10, 2) // Wompi's cut              ($6.01)
+  currency       String  @default("USD")
+
+  // Event details
+  eventDate     DateTime
+  eventType     String
+  eventLocation String
+  notes         String?  @db.Text
+
+  // Payment tracking
+  wompiTxId     String? @unique // client charge — idempotency key
+  wompiPayoutId String? // payout transfer to musician
+
+  // Dispute
+  disputeOpenedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client        User               @relation("ClientBookings", fields: [clientId], references: [id])
+  musician      User               @relation("MusicianBookings", fields: [musicianId], references: [id])
+  profile       MusicianProfile?   @relation("MusicianProfileBookings", fields: [profileId], references: [id])
+  service       Service?           @relation(fields: [serviceId], references: [id])
+  messages      Message[]
+  statusHistory BookingStatusLog[]
+  review        Review?
+
+  @@index([clientId, status])
+  @@index([musicianId, status])
+  @@index([status, createdAt]) // cron job queries
+  @@index([wompiTxId])
+}
+
+model BookingStatusLog {
+  id         String         @id @default(cuid())
+  bookingId  String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  actorId    String? // null = system/cron
+  reason     String?
+  createdAt  DateTime       @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  bookingId String
+  senderId  String
+  content   String    @db.Text
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  sender  User    @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  reviewerId String
+  revieweeId String
+  rating     Int // 1-5
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reviewer User    @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee User    @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+}
+
+// =============================================================================
+// Waitlist & Analytics
+// =============================================================================
+
+model WaitlistEntry {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  searchQuery String? // what they searched before hitting zero results
+  notifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  eventType AnalyticsEventType
+  userId    String?
+  metadata  Json?
+  createdAt DateTime           @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([eventType, createdAt])
+  @@index([userId, createdAt])
+}

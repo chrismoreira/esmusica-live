@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg:           #0A0A0F;
+  --color-bg-app:       #12121A;
+  --color-surface:      #1C1C28;
+  --color-border:       #2E2E3E;
+  --color-accent:       #D4A853;
+  --color-accent-hover: #E8C06A;
+  --color-text:         #F2F2F4;
+  --color-text-muted:   #8A8A9A;
+  --color-success:      #4CAF82;
+  --color-error:        #E85B5B;
+
+  /* Legacy aliases for Tailwind background/foreground */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+}
+
+body {
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

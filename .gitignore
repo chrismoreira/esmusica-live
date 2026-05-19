@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Waitlist (temp storage)
+.waitlist.json
+
+# OS
+.DS_Store
+
+# Prisma
+prisma/migrations/
+
+# Build
+dist/
+.gstack/
