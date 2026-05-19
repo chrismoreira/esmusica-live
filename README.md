@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# esmusica.live
 
-## Getting Started
+Marketplace de músicos en vivo para eventos privados en El Salvador y Guatemala. Conecta a personas que organizan bodas, quinceañeras, aniversarios y eventos corporativos con músicos y bandas disponibles para contratar.
 
-First, run the development server:
+> Modelo Airbnb: cliente paga 14% booking fee · músico paga 3% de comisión · powered by Wompi
+
+---
+
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Framework | Next.js 14 App Router |
+| Base de datos | PostgreSQL + Prisma v7 |
+| Auth | Auth.js v5 + Google OAuth |
+| Pagos | Wompi (El Salvador) |
+| Video | Cloudflare Stream |
+| Archivos | Cloudflare R2 |
+| Email | Resend |
+| Hosting | Vercel |
+| i18n | next-intl |
+
+## Modelo de negocio
+
+```
+Músico cobra:    $100.00
+Cliente paga:    $114.00  (+ 14% booking fee)
+Wompi se lleva:  $  6.01  (5.27% efectivo El Salvador)
+Plataforma gana: $ 10.99  por booking ✅
+Músico recibe:   $ 97.00
+```
+
+## Setup local
+
+### 1. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 2. Variables de entorno
+
+```bash
+cp .env.example .env.local
+# Llenar DATABASE_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, etc.
+```
+
+### 3. Base de datos
+
+```bash
+# Requiere DATABASE_URL configurado (Neon o Supabase recomendado)
+npx prisma migrate dev --name init
+npx prisma generate
+```
+
+### 4. Correr en desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de entorno requeridas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Ver `.env.example` para la lista completa. Las mínimas para desarrollo:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+DATABASE_URL=          # PostgreSQL (Neon / Supabase)
+NEXTAUTH_SECRET=       # openssl rand -base64 32
+GOOGLE_CLIENT_ID=      # Google Cloud Console
+GOOGLE_CLIENT_SECRET=
+```
 
-## Learn More
+## Estructura del proyecto
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+  page.tsx                    # Landing page (hero + buscador + waitlist)
+  layout.tsx                  # Root layout (fuentes, metadata)
+  api/
+    auth/[...nextauth]/       # Auth.js v5 handler
+    waitlist/                 # POST /api/waitlist
+components/
+  SearchBar.tsx               # Buscador con autocomplete
+  WaitlistForm.tsx            # Form de waitlist
+lib/
+  auth.ts                     # Config Auth.js v5
+  prisma.ts                   # Singleton PrismaClient
+prisma/
+  schema.prisma               # 14 modelos (User, Booking, Service, Video...)
+public/
+  logo.png                    # Logo esmusica.live
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estado del proyecto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Fase | Estado |
+|------|--------|
+| Landing page + waitlist | ✅ Listo |
+| Schema DB + Auth | ✅ Listo |
+| Onboarding músico | 🔧 Pendiente |
+| Búsqueda con DB real | 🔧 Pendiente |
+| Flujo de booking + Wompi | 🔧 Pendiente |
+| Dashboard músico/cliente | 🔧 Pendiente |
 
-## Deploy on Vercel
+## Mercado objetivo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Fase 1:** El Salvador + Guatemala  
+**Fase 2:** México, Colombia, resto de LatAm
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+© 2025 esmusica.live · El Salvador
