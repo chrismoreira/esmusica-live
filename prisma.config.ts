@@ -1,13 +1,12 @@
 // Prisma v7 configuration — database URLs live here, NOT in schema.prisma.
 //
-// DATABASE_URL   — used by Prisma CLI for migrate/introspect.
-//                  Use a direct (non-pooled) connection string here so that
-//                  Prisma Migrate can manage DDL transactions properly.
-//                  If your provider requires a pooler URL at runtime, set
-//                  DIRECT_URL to the non-pooled URL and DATABASE_URL to the
-//                  pooler URL for this file.
+// DATABASE_URL format (MySQL):
+//   mysql://USER:PASSWORD@HOST:PORT/DATABASE
 //
-// At runtime, the adapter in lib/prisma.ts reads DATABASE_URL directly.
+// Example (local):   mysql://root:password@localhost:3306/esmusica
+// Example (hosting): mysql://usr_abc:pass@mysql.mihosting.com:3306/db_esmusica
+//
+// Set this in .env.local — never commit the real URL.
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
@@ -17,8 +16,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // For Neon/Supabase: use DIRECT_URL (non-pooled) so migrate can run DDL.
-    // Fall back to DATABASE_URL if DIRECT_URL is not set.
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+    url: process.env["DATABASE_URL"],
   },
 });

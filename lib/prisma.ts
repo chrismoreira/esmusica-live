@@ -1,48 +1,29 @@
 /**
- * Prisma v7 client singleton with @prisma/adapter-pg driver.
+ * Prisma v7 client singleton — MySQL via built-in engine.
  *
- * Prisma v7 requires either an `adapter` or `accelerateUrl` passed to the
- * PrismaClient constructor — the URL is no longer read from schema.prisma.
+ * For MySQL, Prisma does not require an external driver adapter.
+ * DATABASE_URL format: mysql://user:password@host:3306/database
  *
- * For Prisma Accelerate (Vercel edge / connection pooling), swap the
- * `adapter` approach for the `accelerateUrl` approach — see the commented
- * block below.
+ * The CLI reads the URL from prisma.config.ts.
+ * At runtime, PrismaClient reads DATABASE_URL automatically.
  */
-import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/app/generated/prisma'
 
 // ---------------------------------------------------------------------------
-// Direct adapter (standard Node.js / Vercel serverless with PgBouncer)
+// Client factory
 // ---------------------------------------------------------------------------
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL
-
-  if (!connectionString) {
+  if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set')
   }
 
-  const pool = new Pool({ connectionString })
-  const adapter = new PrismaPg(pool)
-
   return new PrismaClient({
-    adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
 }
 
 // ---------------------------------------------------------------------------
-// Alternative: Prisma Accelerate (uncomment when PRISMA_ACCELERATE_URL is set)
-// ---------------------------------------------------------------------------
-// import { withAccelerate } from '@prisma/extension-accelerate'
-// function createPrismaClient() {
-//   return new PrismaClient({
-//     accelerateUrl: process.env.PRISMA_ACCELERATE_URL!,
-//   }).$extends(withAccelerate())
-// }
-
-// ---------------------------------------------------------------------------
-// Singleton (prevents multiple instances in Next.js HMR dev mode)
+// Singleton — prevents multiple instances in Next.js HMR dev mode
 // ---------------------------------------------------------------------------
 const globalForPrisma = globalThis as unknown as {
   prisma: ReturnType<typeof createPrismaClient> | undefined

@@ -26,7 +26,7 @@ generator client {
 //   - PrismaClient constructor (adapter option) — used at runtime
 // See lib/prisma.ts for the runtime adapter setup.
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 // =============================================================================
@@ -146,9 +146,9 @@ model MusicianProfile {
   userId          String   @unique
   bio             String?  @db.Text
   tagline         String?
-  genres          String[]
-  instruments     String[]
-  languages       String[]
+  genres          Json?    // stored as JSON array e.g. ["Jazz","Salsa"]
+  instruments     Json?    // stored as JSON array
+  languages       Json?    // stored as JSON array
   location        String?
   planTier        PlanTier @default(FREE)
   isPublished     Boolean  @default(false)
