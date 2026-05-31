@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import WaitlistForm from "@/components/WaitlistForm";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
+import MusicianCard from "@/components/MusicianCard";
 
 /* ── Data ───────────────────────────────────────────────────── */
-const NAV_TABS = ["Bodas", "Quinceañeras", "Corporativos", "Privados"] as const;
-
 const GENRES = [
   { icon: "🎺", label: "Jazz" },
   { icon: "🥁", label: "Cumbia" },
@@ -56,78 +57,13 @@ const MUSICIANS = [
 
 /* ── Component ──────────────────────────────────────────────── */
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<string>("Bodas");
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen" style={{ background: "var(--canvas)", color: "var(--ink)" }}>
 
       {/* ── 1. Nav ─────────────────────────────────────────────── */}
-      <header
-        className="sticky top-0 z-50"
-        style={{
-          background: "var(--canvas)",
-          borderBottom: "1px solid var(--hairline)",
-          height: "80px",
-        }}
-      >
-        <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
-          {/* Logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="esmusica.live" className="h-9 w-auto" />
-
-          {/* Center: event-type tabs */}
-          <nav className="hidden items-center gap-6 md:flex" aria-label="Tipo de evento">
-            {NAV_TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className="relative pb-1 text-sm font-medium transition-colors"
-                style={{
-                  color: activeTab === tab ? "var(--ink)" : "var(--muted)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {tab}
-                {activeTab === tab && (
-                  <span
-                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
-                    style={{ background: "var(--primary)" }}
-                  />
-                )}
-              </button>
-            ))}
-          </nav>
-
-          {/* Right: CTAs */}
-          <div className="flex items-center gap-3">
-            <button
-              className="hidden rounded-lg border px-4 py-2 text-sm font-semibold transition-colors sm:block"
-              style={{
-                borderColor: "var(--hairline)",
-                color: "var(--ink)",
-                background: "var(--canvas)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ink)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--hairline)";
-              }}
-            >
-              Soy músico
-            </button>
-            <button
-              className="text-sm font-medium"
-              style={{ color: "var(--ink)", background: "none", border: "none", cursor: "pointer" }}
-            >
-              Ingresá
-            </button>
-          </div>
-        </div>
-      </header>
+      <Nav activePage="home" />
 
       {/* ── 2. Hero ────────────────────────────────────────────── */}
       <section className="px-6 pb-8 pt-16 text-center" style={{ background: "var(--canvas)" }}>
@@ -267,96 +203,17 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {MUSICIANS.map((musician) => (
-              <div
+              <MusicianCard
                 key={musician.name}
-                className="group cursor-pointer"
-                style={{ borderRadius: "14px" }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.transform = "translateY(0)";
-                }}
-              >
-                {/* Photo placeholder (square) */}
-                <div
-                  className="relative w-full overflow-hidden"
-                  style={{
-                    aspectRatio: "1 / 1",
-                    borderRadius: "14px",
-                    background: musician.gradient,
-                    transition: "box-shadow 200ms ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-                  }}
-                >
-                  {/* Verified badge top-left */}
-                  {musician.verified && (
-                    <div
-                      className="absolute left-3 top-3"
-                      style={{
-                        background: "rgba(255,255,255,0.92)",
-                        borderRadius: "9999px",
-                        padding: "3px 8px",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: "var(--ink)",
-                      }}
-                    >
-                      Verificado
-                    </div>
-                  )}
-
-                  {/* Heart top-right */}
-                  <button
-                    className="absolute right-3 top-3 flex items-center justify-center rounded-full transition-transform"
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      background: "rgba(255,255,255,0.92)",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "15px",
-                    }}
-                    aria-label={`Guardar ${musician.name}`}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-                    }}
-                  >
-                    ♡
-                  </button>
-                </div>
-
-                {/* Card info */}
-                <div className="mt-3 px-0.5">
-                  {/* Name + rating row */}
-                  <div className="flex items-start justify-between">
-                    <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)" }}>
-                      {musician.name}
-                    </span>
-                    <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink)" }}>
-                      ★ {musician.rating}
-                    </span>
-                  </div>
-                  {/* Genre · location */}
-                  <p style={{ fontSize: "13px", color: "var(--muted)", marginTop: "2px" }}>
-                    {musician.genre} · {musician.location}
-                  </p>
-                  {/* Price */}
-                  <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--primary)", marginTop: "4px" }}>
-                    {musician.price}
-                  </p>
-                </div>
-              </div>
+                name={musician.name}
+                genre={musician.genre}
+                location={musician.location}
+                rating={musician.rating}
+                price={musician.price}
+                verified={musician.verified}
+                gradient={musician.gradient}
+                slug={musician.name.toLowerCase().replace(/\s+/g, "-")}
+              />
             ))}
           </div>
         </div>
@@ -496,89 +353,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 7. Footer ──────────────────────────────────────────── */}
-      <footer
-        className="px-6 py-12"
-        style={{
-          background: "var(--canvas)",
-          borderTop: "1px solid var(--hairline)",
-        }}
-      >
-        <div className="mx-auto max-w-6xl">
-          {/* 3-column link grid */}
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
-            <div>
-              <p
-                className="mb-4 uppercase tracking-widest"
-                style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
-              >
-                Plataforma
-              </p>
-              {["Cómo funciona", "Músicos destacados", "Precios", "Blog"].map((link) => (
-                <a
-                  key={link}
-                  href="#"
-                  className="mb-2.5 block transition-colors"
-                  style={{ fontSize: "14px", color: "var(--body)", textDecoration: "none" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--body)"; }}
-                >
-                  {link}
-                </a>
-              ))}
-            </div>
-            <div>
-              <p
-                className="mb-4 uppercase tracking-widest"
-                style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
-              >
-                Músicos
-              </p>
-              {["Crear perfil", "Gestionar agenda", "Cobros y comisiones", "Soporte para artistas"].map((link) => (
-                <a
-                  key={link}
-                  href="#"
-                  className="mb-2.5 block transition-colors"
-                  style={{ fontSize: "14px", color: "var(--body)", textDecoration: "none" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--body)"; }}
-                >
-                  {link}
-                </a>
-              ))}
-            </div>
-            <div>
-              <p
-                className="mb-4 uppercase tracking-widest"
-                style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
-              >
-                Soporte
-              </p>
-              {["Centro de ayuda", "Contacto", "Términos de uso", "Privacidad"].map((link) => (
-                <a
-                  key={link}
-                  href="#"
-                  className="mb-2.5 block transition-colors"
-                  style={{ fontSize: "14px", color: "var(--body)", textDecoration: "none" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--body)"; }}
-                >
-                  {link}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Legal band */}
-          <div
-            className="mt-10 pt-6"
-            style={{ borderTop: "1px solid var(--hairline-soft)" }}
-          >
-            <p style={{ fontSize: "13px", color: "var(--muted)" }}>
-              © 2025 esmusica.live · El Salvador
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   );
