@@ -3,30 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --color-bg:           #0A0A0F;
-  --color-bg-app:       #12121A;
-  --color-surface:      #1C1C28;
-  --color-border:       #2E2E3E;
-  --color-accent:       #D4A853;
-  --color-accent-hover: #E8C06A;
-  --color-text:         #F2F2F4;
-  --color-text-muted:   #8A8A9A;
-  --color-success:      #4CAF82;
-  --color-error:        #E85B5B;
+  --canvas:           #ffffff;
+  --surface-soft:     #f7f7f7;
+  --surface-card:     #ffffff;
+  --hairline:         #dddddd;
+  --hairline-soft:    #ebebeb;
+  --ink:              #222222;
+  --body:             #3f3f3f;
+  --muted:            #6a6a6a;
+  --muted-soft:       #929292;
+  --primary:          #D4A853;
+  --primary-hover:    #c49640;
+  --primary-disabled: #ead9aa;
+  --on-primary:       #ffffff;
+  --shadow-card:      rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.04) 0 2px 6px, rgba(0,0,0,0.1) 0 4px 8px;
 
-  /* Legacy aliases for Tailwind background/foreground */
-  --background: var(--color-bg);
-  --foreground: var(--color-text);
+  /* Legacy aliases kept for any component that still references them */
+  --background: var(--canvas);
+  --foreground: var(--ink);
 }
 
 body {
-  color: var(--color-text);
-  background: var(--color-bg);
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-inter), -apple-system, system-ui, sans-serif;
 }
 
 @layer utilities {
@@ -35,59 +35,11 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* ── Gradient utilities ── */
-.gradient-text {
-  background: linear-gradient(135deg, #D4A853 0%, #E8C06A 50%, #F2C97A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.gradient-border {
-  position: relative;
-}
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(212,168,83,0.6), rgba(212,168,83,0.1));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Noise texture overlay for surfaces */
-.noise {
-  position: relative;
-}
-.noise::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-/* Glow ambient light */
-.ambient-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-}
-
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-up-delay,
-  .animate-fade-up-delay-2,
-  .animate-glow-pulse,
-  .animate-shimmer {
+  .animate-fade-up-delay-2 {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

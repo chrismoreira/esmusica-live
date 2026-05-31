@@ -1,277 +1,360 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import WaitlistForm from "@/components/WaitlistForm";
-import SearchBar from "@/components/SearchBar";
 
+/* ── Data ───────────────────────────────────────────────────── */
+const NAV_TABS = ["Bodas", "Quinceañeras", "Corporativos", "Privados"] as const;
+
+const GENRES = [
+  { icon: "🎺", label: "Jazz" },
+  { icon: "🥁", label: "Cumbia" },
+  { icon: "💃", label: "Salsa" },
+  { icon: "🎵", label: "Marimba" },
+  { icon: "🎤", label: "Pop" },
+  { icon: "🎸", label: "Rock" },
+] as const;
+
+const MUSICIANS = [
+  {
+    name: "Carlos Mendoza",
+    genre: "Jazz",
+    location: "San Salvador, SV",
+    rating: "4.9",
+    price: "Desde $120/hr",
+    verified: true,
+    gradient: "linear-gradient(135deg, #e8d5b7, #d4b896)",
+  },
+  {
+    name: "Marimba Los Altos",
+    genre: "Marimba",
+    location: "Guatemala City",
+    rating: "4.8",
+    price: "Desde $200/evento",
+    verified: false,
+    gradient: "linear-gradient(135deg, #d4e8d5, #b8d4b9)",
+  },
+  {
+    name: "Sofía Rivas",
+    genre: "Pop/Acústico",
+    location: "Santa Ana, SV",
+    rating: "5.0",
+    price: "Desde $80/hr",
+    verified: true,
+    gradient: "linear-gradient(135deg, #e8d5e8, #d4b8d4)",
+  },
+  {
+    name: "Grupo Ritmo",
+    genre: "Cumbia/Salsa",
+    location: "Quetzaltenango",
+    rating: "4.7",
+    price: "Desde $150/evento",
+    verified: false,
+    gradient: "linear-gradient(135deg, #e8e0d5, #d4c8b8)",
+  },
+] as const;
+
+/* ── Component ──────────────────────────────────────────────── */
 export default function HomePage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 50);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const [activeTab, setActiveTab] = useState<string>("Bodas");
+  const [activeGenre, setActiveGenre] = useState<string | null>(null);
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: "var(--color-bg)", color: "var(--color-text)" }}
-    >
-      {/* ── Nav bar ── */}
+    <div className="min-h-screen" style={{ background: "var(--canvas)", color: "var(--ink)" }}>
+
+      {/* ── 1. Nav ─────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-50 border-b px-4 py-3 sm:px-6 sm:py-4"
+        className="sticky top-0 z-50"
         style={{
-          background: scrolled ? "rgba(10,10,15,0.92)" : "transparent",
-          backdropFilter: scrolled ? "blur(16px)" : "none",
-          borderColor: scrolled ? "var(--color-border)" : "transparent",
-          transition: "background 300ms ease, border-color 300ms ease, backdrop-filter 300ms ease",
+          background: "var(--canvas)",
+          borderBottom: "1px solid var(--hairline)",
+          height: "80px",
         }}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-center sm:justify-between">
+        <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
+          {/* Logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="esmusica.live"
-            className="h-9 w-auto sm:h-12"
-          />
-          <a
-            href="#waitlist"
-            className="hidden rounded-lg px-4 py-2 text-sm font-semibold sm:block"
-            style={{
-              background: "var(--color-accent)",
-              color: "#0A0A0F",
-              transition: "transform 250ms cubic-bezier(0.34,1.56,0.64,1), background 200ms ease",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.03)";
-              (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-accent-hover)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)";
-              (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-accent)";
-            }}
-          >
-            Unirme a la lista
-          </a>
+          <img src="/logo.png" alt="esmusica.live" className="h-9 w-auto" />
+
+          {/* Center: event-type tabs */}
+          <nav className="hidden items-center gap-6 md:flex" aria-label="Tipo de evento">
+            {NAV_TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="relative pb-1 text-sm font-medium transition-colors"
+                style={{
+                  color: activeTab === tab ? "var(--ink)" : "var(--muted)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <span
+                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                    style={{ background: "var(--primary)" }}
+                  />
+                )}
+              </button>
+            ))}
+          </nav>
+
+          {/* Right: CTAs */}
+          <div className="flex items-center gap-3">
+            <button
+              className="hidden rounded-lg border px-4 py-2 text-sm font-semibold transition-colors sm:block"
+              style={{
+                borderColor: "var(--hairline)",
+                color: "var(--ink)",
+                background: "var(--canvas)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ink)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--hairline)";
+              }}
+            >
+              Soy músico
+            </button>
+            <button
+              className="text-sm font-medium"
+              style={{ color: "var(--ink)", background: "none", border: "none", cursor: "pointer" }}
+            >
+              Ingresá
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* ── Hero ── */}
-      <section
-        className="relative overflow-hidden px-6 pb-20 pt-24 text-center"
-        style={{ background: "var(--color-bg)" }}
-      >
-        {/* Primary ambient glow — large, centered, pulsing */}
-        <div
-          className="ambient-glow animate-glow-pulse"
-          style={{
-            left: "50%",
-            top: "-40px",
-            width: "900px",
-            height: "560px",
-            transform: "translateX(-50%)",
-            background: "var(--color-accent)",
-            opacity: 0.12,
-          }}
-          aria-hidden
-        />
-        {/* Secondary ambient glow — smaller, offset right */}
-        <div
-          className="ambient-glow"
-          style={{
-            left: "65%",
-            top: "80px",
-            width: "400px",
-            height: "300px",
-            background: "rgba(212,168,83,0.08)",
-            opacity: 1,
-          }}
-          aria-hidden
-        />
-
-        <div className="relative mx-auto max-w-4xl">
+      {/* ── 2. Hero ────────────────────────────────────────────── */}
+      <section className="px-6 pb-8 pt-16 text-center" style={{ background: "var(--canvas)" }}>
+        <div className="mx-auto max-w-2xl animate-fade-up">
           <h1
-            className="font-heading text-4xl font-bold leading-tight text-balance sm:text-5xl lg:text-6xl animate-fade-up"
-            style={{ color: "var(--color-text)" }}
+            className="text-balance leading-tight"
+            style={{ fontSize: "32px", fontWeight: 700, color: "var(--ink)" }}
           >
-            Músicos en vivo para tu evento.
+            Encontrá músicos para tu evento.
           </h1>
+          <p
+            className="mt-3"
+            style={{ fontSize: "16px", color: "var(--muted)" }}
+          >
+            Más de 50 músicos en El Salvador y Guatemala
+          </p>
 
-          {/* ── Search bar ── */}
-          <div className="animate-fade-up-delay">
-            <SearchBar />
-          </div>
+          {/* Search pill */}
+          <div
+            className="animate-fade-up-delay mx-auto mt-8 flex max-w-xl items-center overflow-hidden"
+            style={{
+              background: "var(--canvas)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "9999px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)",
+              height: "64px",
+            }}
+          >
+            {/* Segment 1 */}
+            <div className="flex flex-1 flex-col justify-center px-5 text-left">
+              <span
+                className="block leading-none"
+                style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink)", letterSpacing: "0.02em" }}
+              >
+                Tipo de evento
+              </span>
+              <input
+                type="text"
+                placeholder="Boda, corporativo..."
+                className="mt-0.5 w-full bg-transparent text-sm outline-none"
+                style={{ color: "var(--muted)", fontSize: "13px" }}
+              />
+            </div>
 
-          {/* ── Genre chips ── */}
-          <div className="mt-6 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:pb-0 animate-fade-up-delay-2">
-            {["Jazz", "Cumbia", "Salsa", "Marimba", "Pop", "Rock"].map((genre) => (
-              <a
-                key={genre}
-                href={`/search?genre=${genre.toLowerCase()}`}
-                className="flex-shrink-0 rounded-full border px-4 py-1.5 text-xs font-medium"
+            {/* Divider */}
+            <div className="h-8 w-px flex-shrink-0" style={{ background: "var(--hairline)" }} aria-hidden />
+
+            {/* Segment 2 */}
+            <div className="flex flex-1 flex-col justify-center px-5 text-left">
+              <span
+                className="block leading-none"
+                style={{ fontSize: "11px", fontWeight: 700, color: "var(--ink)", letterSpacing: "0.02em" }}
+              >
+                Ciudad
+              </span>
+              <input
+                type="text"
+                placeholder="San Salvador..."
+                className="mt-0.5 w-full bg-transparent text-sm outline-none"
+                style={{ color: "var(--muted)", fontSize: "13px" }}
+              />
+            </div>
+
+            {/* Search button */}
+            <div className="flex-shrink-0 pr-2">
+              <button
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-full text-lg transition-all"
                 style={{
-                  borderColor: "var(--color-border)",
-                  color: "var(--color-text-muted)",
-                  background: "var(--color-surface)",
-                  transition: "border-color 200ms ease, color 200ms ease, transform 200ms cubic-bezier(0.34,1.56,0.64,1)",
+                  background: "var(--primary)",
+                  color: "var(--on-primary)",
+                  border: "none",
+                  cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLAnchorElement;
-                  el.style.borderColor = "rgba(212,168,83,0.6)";
-                  el.style.color = "var(--color-accent)";
-                  el.style.transform = "translateY(-2px)";
+                  (e.currentTarget as HTMLButtonElement).style.background = "var(--primary-hover)";
+                  (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.04)";
                 }}
                 onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLAnchorElement;
-                  el.style.borderColor = "var(--color-border)";
-                  el.style.color = "var(--color-text-muted)";
-                  el.style.transform = "translateY(0)";
+                  (e.currentTarget as HTMLButtonElement).style.background = "var(--primary)";
+                  (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
                 }}
+                aria-label="Buscar"
               >
-                {genre}
-              </a>
-            ))}
+                🔍
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Featured Musicians ── */}
-      <section className="px-6 pb-24 pt-4" style={{ background: "var(--color-bg)" }}>
+      {/* ── 3. Genre strip ─────────────────────────────────────── */}
+      <div
+        className="animate-fade-up-delay-2"
+        style={{ borderBottom: "1px solid var(--hairline)", background: "var(--canvas)" }}
+      >
+        <div className="mx-auto max-w-6xl overflow-x-auto px-6">
+          <div className="flex items-center gap-8 py-4" style={{ minWidth: "max-content" }}>
+            {GENRES.map(({ icon, label }) => {
+              const isActive = activeGenre === label;
+              return (
+                <button
+                  key={label}
+                  onClick={() => setActiveGenre(isActive ? null : label)}
+                  className="relative flex flex-col items-center gap-1 pb-1 transition-colors"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: isActive ? "var(--ink)" : "var(--muted)",
+                  }}
+                >
+                  <span style={{ fontSize: "20px", lineHeight: 1 }} aria-hidden>{icon}</span>
+                  <span style={{ fontSize: "14px", fontWeight: 500, whiteSpace: "nowrap" }}>{label}</span>
+                  {isActive && (
+                    <span
+                      className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                      style={{ background: "var(--primary)" }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4. Featured musicians ──────────────────────────────── */}
+      <section className="px-6 py-12" style={{ background: "var(--canvas)" }}>
         <div className="mx-auto max-w-6xl">
           <h2
-            className="font-heading mb-8 text-2xl font-bold sm:text-3xl"
-            style={{ color: "var(--color-text)" }}
+            className="mb-6"
+            style={{ fontSize: "22px", fontWeight: 600, color: "var(--ink)" }}
           >
             Músicos destacados
           </h2>
 
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {[
-              {
-                name: "Carlos Mendoza",
-                genre: "Jazz",
-                location: "San Salvador, SV",
-                rating: "4.9",
-                reviews: 23,
-                price: "Desde $120/hr",
-                verified: true,
-                gradient: "linear-gradient(135deg, #1C1C28, #2E2E3E)",
-              },
-              {
-                name: "Marimba Los Altos",
-                genre: "Marimba",
-                location: "Guatemala City",
-                rating: "4.8",
-                reviews: 41,
-                price: "Desde $200/evento",
-                verified: false,
-                gradient: "linear-gradient(135deg, #1C2028, #2A2E3E)",
-              },
-              {
-                name: "Sofía Rivas",
-                genre: "Pop/Acústico",
-                location: "Santa Ana, SV",
-                rating: "5.0",
-                reviews: 18,
-                price: "Desde $80/hr",
-                verified: true,
-                gradient: "linear-gradient(135deg, #1C1C28, #2E2E3E)",
-              },
-              {
-                name: "Grupo Ritmo",
-                genre: "Cumbia/Salsa",
-                location: "Quetzaltenango",
-                rating: "4.7",
-                reviews: 55,
-                price: "Desde $150/evento",
-                verified: false,
-                gradient: "linear-gradient(135deg, #1A1C28, #2C2E3E)",
-              },
-            ].map((musician) => (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {MUSICIANS.map((musician) => (
               <div
                 key={musician.name}
-                className="group relative overflow-hidden rounded-2xl border"
-                style={{
-                  background: musician.gradient,
-                  borderColor: "var(--color-border)",
-                  minHeight: "220px",
-                  transition: "transform 250ms cubic-bezier(0.34,1.56,0.64,1), border-color 250ms ease, box-shadow 250ms ease",
-                }}
+                className="group cursor-pointer"
+                style={{ borderRadius: "14px" }}
                 onMouseEnter={(e) => {
                   const el = e.currentTarget as HTMLDivElement;
-                  el.style.transform = "translateY(-4px)";
-                  el.style.borderColor = "rgba(212,168,83,0.4)";
-                  el.style.boxShadow = "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,168,83,0.2)";
+                  el.style.transform = "translateY(-2px)";
                 }}
                 onMouseLeave={(e) => {
                   const el = e.currentTarget as HTMLDivElement;
                   el.style.transform = "translateY(0)";
-                  el.style.borderColor = "var(--color-border)";
-                  el.style.boxShadow = "none";
                 }}
               >
-                {/* Genre badge top-left */}
-                <div className="absolute left-3 top-3 flex items-center gap-2">
-                  <span
-                    className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                    style={{
-                      background: "rgba(212,168,83,0.18)",
-                      color: "var(--color-accent)",
-                      border: "1px solid rgba(212,168,83,0.3)",
-                    }}
-                  >
-                    {musician.genre}
-                  </span>
+                {/* Photo placeholder (square) */}
+                <div
+                  className="relative w-full overflow-hidden"
+                  style={{
+                    aspectRatio: "1 / 1",
+                    borderRadius: "14px",
+                    background: musician.gradient,
+                    transition: "box-shadow 200ms ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+                  }}
+                >
+                  {/* Verified badge top-left */}
                   {musician.verified && (
-                    <span
-                      className="rounded-full px-2.5 py-1 text-xs font-semibold flex items-center gap-1"
+                    <div
+                      className="absolute left-3 top-3"
                       style={{
-                        background: "rgba(212,168,83,0.18)",
-                        color: "var(--color-accent)",
-                        border: "1px solid rgba(212,168,83,0.3)",
+                        background: "rgba(255,255,255,0.92)",
+                        borderRadius: "9999px",
+                        padding: "3px 8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: "var(--ink)",
                       }}
                     >
-                      <span className="animate-glow-pulse" aria-hidden>●</span>
                       Verificado
-                    </span>
+                    </div>
                   )}
+
+                  {/* Heart top-right */}
+                  <button
+                    className="absolute right-3 top-3 flex items-center justify-center rounded-full transition-transform"
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      background: "rgba(255,255,255,0.92)",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "15px",
+                    }}
+                    aria-label={`Guardar ${musician.name}`}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
+                    }}
+                  >
+                    ♡
+                  </button>
                 </div>
 
-                {/* Card content bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div
-                    className="h-px mb-3 opacity-20"
-                    style={{ background: "var(--color-border)" }}
-                  />
-                  <p
-                    className="font-heading text-sm font-bold leading-tight sm:text-base"
-                    style={{ color: "var(--color-text)" }}
-                  >
-                    {musician.name}
-                  </p>
-                  <p
-                    className="mt-0.5 text-xs"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    {musician.location}
-                  </p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                      ⭐ {musician.rating}{" "}
-                      <span style={{ color: "var(--color-text-muted)", opacity: 0.6 }}>
-                        ({musician.reviews})
-                      </span>
+                {/* Card info */}
+                <div className="mt-3 px-0.5">
+                  {/* Name + rating row */}
+                  <div className="flex items-start justify-between">
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)" }}>
+                      {musician.name}
                     </span>
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: "var(--color-accent)" }}
-                    >
-                      {musician.price}
+                    <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink)" }}>
+                      ★ {musician.rating}
                     </span>
                   </div>
+                  {/* Genre · location */}
+                  <p style={{ fontSize: "13px", color: "var(--muted)", marginTop: "2px" }}>
+                    {musician.genre} · {musician.location}
+                  </p>
+                  {/* Price */}
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--primary)", marginTop: "4px" }}>
+                    {musician.price}
+                  </p>
                 </div>
               </div>
             ))}
@@ -279,277 +362,224 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Social proof bar ── */}
-      <div
-        className="border-y px-6 py-5"
-        style={{
-          borderColor: "var(--color-border)",
-          background: "var(--color-bg-app)",
-        }}
-      >
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-6 text-center">
-          {[
-            "20+ músicos",
-            "El Salvador y Guatemala",
-            "Primera plataforma de su tipo",
-          ].map((item, i, arr) => (
-            <span key={item} className="flex items-center gap-6">
-              <span
-                className="text-sm font-medium tracking-wide"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {item}
-              </span>
-              {i < arr.length - 1 && (
-                <span
-                  className="hidden h-4 w-px sm:block"
-                  style={{ background: "var(--color-border)" }}
-                  aria-hidden
-                />
-              )}
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* ── 5. How it works ────────────────────────────────────── */}
+      <section style={{ background: "var(--surface-soft)" }}>
 
-      {/* ── How it works for clients ── */}
-      <section className="px-6 py-24" style={{ background: "var(--color-bg)" }}>
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-16 text-center">
+        {/* For clients */}
+        <div className="px-6 pb-16 pt-16">
+          <div className="mx-auto max-w-6xl">
             <p
-              className="mb-3 text-xs font-medium uppercase tracking-widest"
-              style={{ color: "var(--color-accent)" }}
+              className="mb-5 uppercase tracking-widest"
+              style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
             >
               Para clientes
             </p>
-            <h2
-              className="font-heading text-3xl font-bold sm:text-4xl"
-              style={{ color: "var(--color-text)" }}
-            >
-              Reservá músicos en 3 pasos
-            </h2>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-3">
-            {[
-              {
-                num: "1",
-                title: "Buscá por género, ubicación o presupuesto",
-                desc: "Filtrá por lo que necesitás: jazz para una boda, cumbia para una fiesta, salsa para un evento corporativo.",
-              },
-              {
-                num: "2",
-                title: "Vé demos en video y leé reseñas",
-                desc: "Cada perfil incluye videos de presentaciones reales y opiniones de clientes anteriores.",
-              },
-              {
-                num: "3",
-                title: "Reservá y pagá de forma segura",
-                desc: "Confirmá la fecha y pagá con total seguridad. El músico recibe el pago solo cuando el evento termina.",
-              },
-            ].map((step) => (
-              <div
-                key={step.num}
-                className="gradient-border rounded-2xl border p-8"
-                style={{
-                  background: "var(--color-surface)",
-                  borderColor: "transparent",
-                  transition: "background 250ms ease, transform 250ms cubic-bezier(0.34,1.56,0.64,1)",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = "#242436";
-                  el.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = "var(--color-surface)";
-                  el.style.transform = "translateY(0)";
-                }}
-              >
-                <span
-                  className="gradient-text font-heading block text-7xl font-bold leading-none"
-                >
-                  {step.num}
-                </span>
-                <h3
-                  className="font-heading mt-4 text-xl font-bold leading-snug"
-                  style={{ color: "var(--color-text)" }}
-                >
-                  {step.title}
-                </h3>
-                <p
-                  className="mt-3 text-sm leading-relaxed"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  {step.desc}
-                </p>
-              </div>
-            ))}
+            <div className="grid gap-10 sm:grid-cols-3">
+              {[
+                {
+                  num: "1",
+                  title: "Buscá por género, ubicación o presupuesto",
+                  desc: "Filtrá por lo que necesitás: jazz para una boda, cumbia para una fiesta, salsa para un evento corporativo.",
+                },
+                {
+                  num: "2",
+                  title: "Vé demos en video y leé reseñas",
+                  desc: "Cada perfil incluye videos de presentaciones reales y opiniones de clientes anteriores.",
+                },
+                {
+                  num: "3",
+                  title: "Reservá y pagá de forma segura",
+                  desc: "Confirmá la fecha y pagá con total seguridad. El músico recibe el pago solo cuando el evento termina.",
+                },
+              ].map((step) => (
+                <div key={step.num} className="flex gap-5">
+                  <span
+                    className="flex-shrink-0 leading-none"
+                    style={{ fontSize: "64px", fontWeight: 700, color: "var(--primary)", lineHeight: 1 }}
+                  >
+                    {step.num}
+                  </span>
+                  <div className="pt-2">
+                    <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--ink)", lineHeight: 1.4 }}>
+                      {step.title}
+                    </h3>
+                    <p style={{ fontSize: "14px", color: "var(--muted)", marginTop: "6px", lineHeight: 1.6 }}>
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* ── How it works for musicians ── */}
-      <section
-        className="px-6 py-24"
-        style={{ background: "var(--color-bg-app)" }}
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-16 text-center">
+        {/* Hairline divider */}
+        <div className="mx-auto max-w-6xl px-6">
+          <div style={{ height: "1px", background: "var(--hairline)" }} />
+        </div>
+
+        {/* For musicians */}
+        <div className="px-6 pb-16 pt-16">
+          <div className="mx-auto max-w-6xl">
             <p
-              className="mb-3 text-xs font-medium uppercase tracking-widest"
-              style={{ color: "var(--color-accent)" }}
+              className="mb-5 uppercase tracking-widest"
+              style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
             >
               Para músicos
             </p>
-            <h2
-              className="font-heading text-3xl font-bold sm:text-4xl"
-              style={{ color: "var(--color-text)" }}
-            >
-              Tu próximo show está a un perfil de distancia
-            </h2>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-3">
-            {[
-              {
-                num: "1",
-                title: "Creá tu perfil en minutos — es gratis",
-                desc: "Subí tu foto, videos de presentaciones y descripción de tu estilo. Sin costo de registro.",
-              },
-              {
-                num: "2",
-                title: "Recibí solicitudes de clientes",
-                desc: "Los clientes te contactan directamente. Vos decidís qué fechas aceptás.",
-              },
-              {
-                num: "3",
-                title: "Cobrá directo, con solo un 3% de comisión",
-                desc: "La comisión más baja del mercado. Tu trabajo, tus ingresos.",
-              },
-            ].map((step) => (
-              <div
-                key={step.num}
-                className="gradient-border rounded-2xl border p-8"
-                style={{
-                  background: "var(--color-surface)",
-                  borderColor: "transparent",
-                  transition: "background 250ms ease, transform 250ms cubic-bezier(0.34,1.56,0.64,1)",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = "#242436";
-                  el.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = "var(--color-surface)";
-                  el.style.transform = "translateY(0)";
-                }}
-              >
-                <span
-                  className="gradient-text font-heading block text-7xl font-bold leading-none"
-                >
-                  {step.num}
-                </span>
-                <h3
-                  className="font-heading mt-4 text-xl font-bold leading-snug"
-                  style={{ color: "var(--color-text)" }}
-                >
-                  {step.title}
-                </h3>
-                <p
-                  className="mt-3 text-sm leading-relaxed"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  {step.desc}
-                </p>
-              </div>
-            ))}
+            <div className="grid gap-10 sm:grid-cols-3">
+              {[
+                {
+                  num: "1",
+                  title: "Creá tu perfil en minutos — es gratis",
+                  desc: "Subí tu foto, videos de presentaciones y descripción de tu estilo. Sin costo de registro.",
+                },
+                {
+                  num: "2",
+                  title: "Recibí solicitudes de clientes",
+                  desc: "Los clientes te contactan directamente. Vos decidís qué fechas aceptás.",
+                },
+                {
+                  num: "3",
+                  title: "Cobrá directo, con solo un 3% de comisión",
+                  desc: "La comisión más baja del mercado. Tu trabajo, tus ingresos.",
+                },
+              ].map((step) => (
+                <div key={step.num} className="flex gap-5">
+                  <span
+                    className="flex-shrink-0 leading-none"
+                    style={{ fontSize: "64px", fontWeight: 700, color: "var(--primary)", lineHeight: 1 }}
+                  >
+                    {step.num}
+                  </span>
+                  <div className="pt-2">
+                    <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--ink)", lineHeight: 1.4 }}>
+                      {step.title}
+                    </h3>
+                    <p style={{ fontSize: "14px", color: "var(--muted)", marginTop: "6px", lineHeight: 1.6 }}>
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Waitlist ── */}
+      {/* ── 6. Waitlist ────────────────────────────────────────── */}
       <section
         id="waitlist"
-        className="relative px-6 py-28 text-center overflow-hidden"
-        style={{ background: "var(--color-bg)" }}
+        className="px-6 py-20 text-center"
+        style={{ background: "var(--canvas)" }}
       >
-        {/* Ambient glow behind waitlist title */}
-        <div
-          className="ambient-glow animate-glow-pulse"
-          style={{
-            left: "50%",
-            top: "0",
-            width: "600px",
-            height: "400px",
-            transform: "translateX(-50%)",
-            background: "var(--color-accent)",
-            opacity: 0.07,
-          }}
-          aria-hidden
-        />
-
-        <div className="relative mx-auto max-w-2xl">
-          {/* Waitlist card with gradient border */}
-          <div
-            className="gradient-border rounded-3xl p-10"
-            style={{
-              background: "rgba(28,28,40,0.8)",
-              backdropFilter: "blur(12px)",
-            }}
+        <div className="mx-auto max-w-lg">
+          <h2 style={{ fontSize: "22px", fontWeight: 600, color: "var(--ink)" }}>
+            Sé el primero en enterarte
+          </h2>
+          <p
+            className="mt-3"
+            style={{ fontSize: "16px", color: "var(--muted)", lineHeight: 1.6 }}
           >
-            <h2
-              className="font-heading text-3xl font-bold sm:text-4xl"
-              style={{ color: "var(--color-text)" }}
-            >
-              Sé el primero en enterarte del lanzamiento.
-            </h2>
-            <p
-              className="mt-4 text-base leading-relaxed"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Estamos construyendo el marketplace de música en vivo para El
-              Salvador y Guatemala. Dejanos tu correo y te avisamos cuando
-              abramos.
-            </p>
-
-            <div className="mt-10 flex justify-center">
-              <WaitlistForm />
-            </div>
-
-            <p
-              className="mt-5 text-xs"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Sin spam. Solo novedades del lanzamiento.
-            </p>
+            Estamos construyendo el marketplace de música en vivo para El Salvador y Guatemala. Dejanos tu correo y te avisamos cuando abramos.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <WaitlistForm />
           </div>
+          <p
+            className="mt-4"
+            style={{ fontSize: "13px", color: "var(--muted-soft)" }}
+          >
+            Sin spam. Solo novedades del lanzamiento.
+          </p>
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* ── 7. Footer ──────────────────────────────────────────── */}
       <footer
-        className="border-t px-6 py-8 text-center"
+        className="px-6 py-12"
         style={{
-          borderColor: "var(--color-border)",
-          background: "var(--color-bg-app)",
+          background: "var(--canvas)",
+          borderTop: "1px solid var(--hairline)",
         }}
       >
-        {/* Separator gradient line */}
-        <div
-          className="mx-auto mb-6 h-px max-w-md"
-          style={{
-            background: "linear-gradient(90deg, transparent, rgba(212,168,83,0.2), transparent)",
-          }}
-          aria-hidden
-        />
-        <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-          esmusica.live © 2025 · El Salvador
-        </p>
+        <div className="mx-auto max-w-6xl">
+          {/* 3-column link grid */}
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+            <div>
+              <p
+                className="mb-4 uppercase tracking-widest"
+                style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
+              >
+                Plataforma
+              </p>
+              {["Cómo funciona", "Músicos destacados", "Precios", "Blog"].map((link) => (
+                <a
+                  key={link}
+                  href="#"
+                  className="mb-2.5 block transition-colors"
+                  style={{ fontSize: "14px", color: "var(--body)", textDecoration: "none" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--body)"; }}
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+            <div>
+              <p
+                className="mb-4 uppercase tracking-widest"
+                style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
+              >
+                Músicos
+              </p>
+              {["Crear perfil", "Gestionar agenda", "Cobros y comisiones", "Soporte para artistas"].map((link) => (
+                <a
+                  key={link}
+                  href="#"
+                  className="mb-2.5 block transition-colors"
+                  style={{ fontSize: "14px", color: "var(--body)", textDecoration: "none" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--body)"; }}
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+            <div>
+              <p
+                className="mb-4 uppercase tracking-widest"
+                style={{ fontSize: "11px", fontWeight: 600, color: "var(--muted)" }}
+              >
+                Soporte
+              </p>
+              {["Centro de ayuda", "Contacto", "Términos de uso", "Privacidad"].map((link) => (
+                <a
+                  key={link}
+                  href="#"
+                  className="mb-2.5 block transition-colors"
+                  style={{ fontSize: "14px", color: "var(--body)", textDecoration: "none" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--body)"; }}
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Legal band */}
+          <div
+            className="mt-10 pt-6"
+            style={{ borderTop: "1px solid var(--hairline-soft)" }}
+          >
+            <p style={{ fontSize: "13px", color: "var(--muted)" }}>
+              © 2025 esmusica.live · El Salvador
+            </p>
+          </div>
+        </div>
       </footer>
+
     </div>
   );
 }
