@@ -65,16 +65,28 @@ function SuggestionGroup({ icon, label, items, onSelect }: SuggestionGroupProps)
             e.preventDefault();
             onSelect(item);
           }}
-          className="w-full px-4 py-2.5 text-left text-sm transition-colors"
-          style={{ color: "var(--color-text)" }}
+          className="group/item w-full px-4 py-2.5 text-left text-sm flex items-center gap-2"
+          style={{
+            color: "var(--color-text)",
+            transition: "background 150ms ease",
+          }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background =
-              "var(--color-border)";
+              "rgba(212,168,83,0.08)";
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = "transparent";
           }}
         >
+          {/* Amber dot indicator on hover */}
+          <span
+            className="shrink-0 h-1.5 w-1.5 rounded-full opacity-0 group-hover/item:opacity-100"
+            style={{
+              background: "var(--color-accent)",
+              transition: "opacity 150ms ease",
+            }}
+            aria-hidden
+          />
           {item}
         </button>
       ))}
@@ -87,6 +99,7 @@ export default function SearchBar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [fadingOut, setFadingOut] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +124,7 @@ export default function SearchBar() {
         !containerRef.current.contains(e.target as Node)
       ) {
         setShowDropdown(false);
+        setIsFocused(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -157,8 +171,15 @@ export default function SearchBar() {
         className="flex flex-col overflow-visible rounded-2xl border sm:flex-row sm:items-stretch sm:rounded-full"
         style={{
           background: "var(--color-surface)",
-          borderColor: showDropdown ? "var(--color-accent)" : "var(--color-border)",
-          transition: "border-color 0.15s ease",
+          borderColor: isFocused
+            ? "var(--color-accent)"
+            : showDropdown
+            ? "var(--color-accent)"
+            : "var(--color-border)",
+          boxShadow: isFocused
+            ? "0 0 0 2px #D4A853, 0 0 20px rgba(212,168,83,0.25)"
+            : "none",
+          transition: "border-color 200ms ease, box-shadow 200ms ease",
         }}
       >
         {/* Input */}
@@ -174,7 +195,10 @@ export default function SearchBar() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ color: "var(--color-text-muted)" }}
+            style={{
+              color: isFocused ? "var(--color-accent)" : "var(--color-text-muted)",
+              transition: "color 200ms ease",
+            }}
           >
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -202,7 +226,14 @@ export default function SearchBar() {
                 setQuery(e.target.value);
                 setShowDropdown(true);
               }}
-              onFocus={() => setShowDropdown(true)}
+              onFocus={() => {
+                setShowDropdown(true);
+                setIsFocused(true);
+              }}
+              onBlur={() => {
+                // Small delay so dropdown click can register first
+                setTimeout(() => setIsFocused(false), 150);
+              }}
               onKeyDown={handleKeyDown}
               className="w-full bg-transparent text-sm outline-none"
               style={{ color: "var(--color-text)" }}
@@ -238,10 +269,21 @@ export default function SearchBar() {
           <button
             type="button"
             onClick={handleSearch}
-            className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-opacity sm:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold sm:w-auto"
             style={{
               background: "var(--color-accent)",
               color: "#0A0A0F",
+              transition: "transform 250ms cubic-bezier(0.34,1.56,0.64,1), background 200ms ease",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.transform = "scale(1.02)";
+              el.style.background = "var(--color-accent-hover)";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLButtonElement;
+              el.style.transform = "scale(1)";
+              el.style.background = "var(--color-accent)";
             }}
           >
             <svg
@@ -271,6 +313,7 @@ export default function SearchBar() {
             border: "1px solid var(--color-border)",
             borderRadius: "16px",
             boxShadow: "0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)",
+            animation: "fade-up 200ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
           }}
           role="listbox"
           aria-label="Sugerencias de búsqueda"

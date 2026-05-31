@@ -1,7 +1,20 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import WaitlistForm from "@/components/WaitlistForm";
 import SearchBar from "@/components/SearchBar";
 
 export default function HomePage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 50);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div
       className="min-h-screen"
@@ -11,9 +24,10 @@ export default function HomePage() {
       <header
         className="sticky top-0 z-50 border-b px-4 py-3 sm:px-6 sm:py-4"
         style={{
-          background: "rgba(10,10,15,0.85)",
-          backdropFilter: "blur(12px)",
-          borderColor: "var(--color-border)",
+          background: scrolled ? "rgba(10,10,15,0.92)" : "transparent",
+          backdropFilter: scrolled ? "blur(16px)" : "none",
+          borderColor: scrolled ? "var(--color-border)" : "transparent",
+          transition: "background 300ms ease, border-color 300ms ease, backdrop-filter 300ms ease",
         }}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-center sm:justify-between">
@@ -25,10 +39,19 @@ export default function HomePage() {
           />
           <a
             href="#waitlist"
-            className="hidden rounded-lg px-4 py-2 text-sm font-semibold transition-colors sm:block"
+            className="hidden rounded-lg px-4 py-2 text-sm font-semibold sm:block"
             style={{
               background: "var(--color-accent)",
               color: "#0A0A0F",
+              transition: "transform 250ms cubic-bezier(0.34,1.56,0.64,1), background 200ms ease",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.03)";
+              (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-accent-hover)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)";
+              (e.currentTarget as HTMLAnchorElement).style.background = "var(--color-accent)";
             }}
           >
             Unirme a la lista
@@ -41,35 +64,71 @@ export default function HomePage() {
         className="relative overflow-hidden px-6 pb-20 pt-24 text-center"
         style={{ background: "var(--color-bg)" }}
       >
-        {/* Ambient glow behind headline */}
+        {/* Primary ambient glow — large, centered, pulsing */}
         <div
-          className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[800px] -translate-x-1/2 rounded-full opacity-15 blur-3xl"
-          style={{ background: "var(--color-accent)" }}
+          className="ambient-glow animate-glow-pulse"
+          style={{
+            left: "50%",
+            top: "-40px",
+            width: "900px",
+            height: "560px",
+            transform: "translateX(-50%)",
+            background: "var(--color-accent)",
+            opacity: 0.12,
+          }}
+          aria-hidden
+        />
+        {/* Secondary ambient glow — smaller, offset right */}
+        <div
+          className="ambient-glow"
+          style={{
+            left: "65%",
+            top: "80px",
+            width: "400px",
+            height: "300px",
+            background: "rgba(212,168,83,0.08)",
+            opacity: 1,
+          }}
           aria-hidden
         />
 
         <div className="relative mx-auto max-w-4xl">
           <h1
-            className="font-heading text-4xl font-bold leading-tight text-balance sm:text-5xl lg:text-6xl"
+            className="font-heading text-4xl font-bold leading-tight text-balance sm:text-5xl lg:text-6xl animate-fade-up"
             style={{ color: "var(--color-text)" }}
           >
             Músicos en vivo para tu evento.
           </h1>
 
           {/* ── Search bar ── */}
-          <SearchBar />
+          <div className="animate-fade-up-delay">
+            <SearchBar />
+          </div>
 
           {/* ── Genre chips ── */}
-          <div className="mt-6 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:pb-0">
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:pb-0 animate-fade-up-delay-2">
             {["Jazz", "Cumbia", "Salsa", "Marimba", "Pop", "Rock"].map((genre) => (
               <a
                 key={genre}
                 href={`/search?genre=${genre.toLowerCase()}`}
-                className="flex-shrink-0 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors hover:border-amber-400"
+                className="flex-shrink-0 rounded-full border px-4 py-1.5 text-xs font-medium"
                 style={{
                   borderColor: "var(--color-border)",
                   color: "var(--color-text-muted)",
                   background: "var(--color-surface)",
+                  transition: "border-color 200ms ease, color 200ms ease, transform 200ms cubic-bezier(0.34,1.56,0.64,1)",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLAnchorElement;
+                  el.style.borderColor = "rgba(212,168,83,0.6)";
+                  el.style.color = "var(--color-accent)";
+                  el.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLAnchorElement;
+                  el.style.borderColor = "var(--color-border)";
+                  el.style.color = "var(--color-text-muted)";
+                  el.style.transform = "translateY(0)";
                 }}
               >
                 {genre}
@@ -139,6 +198,19 @@ export default function HomePage() {
                   background: musician.gradient,
                   borderColor: "var(--color-border)",
                   minHeight: "220px",
+                  transition: "transform 250ms cubic-bezier(0.34,1.56,0.64,1), border-color 250ms ease, box-shadow 250ms ease",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(-4px)";
+                  el.style.borderColor = "rgba(212,168,83,0.4)";
+                  el.style.boxShadow = "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,168,83,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.transform = "translateY(0)";
+                  el.style.borderColor = "var(--color-border)";
+                  el.style.boxShadow = "none";
                 }}
               >
                 {/* Genre badge top-left */}
@@ -155,13 +227,14 @@ export default function HomePage() {
                   </span>
                   {musician.verified && (
                     <span
-                      className="rounded-full px-2.5 py-1 text-xs font-semibold"
+                      className="rounded-full px-2.5 py-1 text-xs font-semibold flex items-center gap-1"
                       style={{
                         background: "rgba(212,168,83,0.18)",
                         color: "var(--color-accent)",
                         border: "1px solid rgba(212,168,83,0.3)",
                       }}
                     >
+                      <span className="animate-glow-pulse" aria-hidden>●</span>
                       Verificado
                     </span>
                   )}
@@ -277,15 +350,25 @@ export default function HomePage() {
             ].map((step) => (
               <div
                 key={step.num}
-                className="rounded-2xl border p-8"
+                className="gradient-border rounded-2xl border p-8"
                 style={{
                   background: "var(--color-surface)",
-                  borderColor: "var(--color-border)",
+                  borderColor: "transparent",
+                  transition: "background 250ms ease, transform 250ms cubic-bezier(0.34,1.56,0.64,1)",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = "#242436";
+                  el.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = "var(--color-surface)";
+                  el.style.transform = "translateY(0)";
                 }}
               >
                 <span
-                  className="font-heading block text-7xl font-bold leading-none"
-                  style={{ color: "var(--color-accent)", opacity: 0.25 }}
+                  className="gradient-text font-heading block text-7xl font-bold leading-none"
                 >
                   {step.num}
                 </span>
@@ -348,15 +431,25 @@ export default function HomePage() {
             ].map((step) => (
               <div
                 key={step.num}
-                className="rounded-2xl border p-8"
+                className="gradient-border rounded-2xl border p-8"
                 style={{
                   background: "var(--color-surface)",
-                  borderColor: "var(--color-border)",
+                  borderColor: "transparent",
+                  transition: "background 250ms ease, transform 250ms cubic-bezier(0.34,1.56,0.64,1)",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = "#242436";
+                  el.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = "var(--color-surface)";
+                  el.style.transform = "translateY(0)";
                 }}
               >
                 <span
-                  className="font-heading block text-7xl font-bold leading-none"
-                  style={{ color: "var(--color-accent)", opacity: 0.25 }}
+                  className="gradient-text font-heading block text-7xl font-bold leading-none"
                 >
                   {step.num}
                 </span>
@@ -381,35 +474,59 @@ export default function HomePage() {
       {/* ── Waitlist ── */}
       <section
         id="waitlist"
-        className="px-6 py-28 text-center"
+        className="relative px-6 py-28 text-center overflow-hidden"
         style={{ background: "var(--color-bg)" }}
       >
-        <div className="mx-auto max-w-2xl">
-          <h2
-            className="font-heading text-3xl font-bold sm:text-4xl"
-            style={{ color: "var(--color-text)" }}
-          >
-            Sé el primero en enterarte del lanzamiento.
-          </h2>
-          <p
-            className="mt-4 text-base leading-relaxed"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Estamos construyendo el marketplace de música en vivo para El
-            Salvador y Guatemala. Dejanos tu correo y te avisamos cuando
-            abramos.
-          </p>
+        {/* Ambient glow behind waitlist title */}
+        <div
+          className="ambient-glow animate-glow-pulse"
+          style={{
+            left: "50%",
+            top: "0",
+            width: "600px",
+            height: "400px",
+            transform: "translateX(-50%)",
+            background: "var(--color-accent)",
+            opacity: 0.07,
+          }}
+          aria-hidden
+        />
 
-          <div className="mt-10 flex justify-center">
-            <WaitlistForm />
+        <div className="relative mx-auto max-w-2xl">
+          {/* Waitlist card with gradient border */}
+          <div
+            className="gradient-border rounded-3xl p-10"
+            style={{
+              background: "rgba(28,28,40,0.8)",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <h2
+              className="font-heading text-3xl font-bold sm:text-4xl"
+              style={{ color: "var(--color-text)" }}
+            >
+              Sé el primero en enterarte del lanzamiento.
+            </h2>
+            <p
+              className="mt-4 text-base leading-relaxed"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Estamos construyendo el marketplace de música en vivo para El
+              Salvador y Guatemala. Dejanos tu correo y te avisamos cuando
+              abramos.
+            </p>
+
+            <div className="mt-10 flex justify-center">
+              <WaitlistForm />
+            </div>
+
+            <p
+              className="mt-5 text-xs"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Sin spam. Solo novedades del lanzamiento.
+            </p>
           </div>
-
-          <p
-            className="mt-5 text-xs"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Sin spam. Solo novedades del lanzamiento.
-          </p>
         </div>
       </section>
 
@@ -421,6 +538,14 @@ export default function HomePage() {
           background: "var(--color-bg-app)",
         }}
       >
+        {/* Separator gradient line */}
+        <div
+          className="mx-auto mb-6 h-px max-w-md"
+          style={{
+            background: "linear-gradient(90deg, transparent, rgba(212,168,83,0.2), transparent)",
+          }}
+          aria-hidden
+        />
         <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
           esmusica.live © 2025 · El Salvador
         </p>
